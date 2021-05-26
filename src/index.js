@@ -29,16 +29,21 @@ app.get('/',(req,res)=>res.send('hello world'))
 app.post('/send-email', (req, res) => {
   
   let emailUser = req.body.email; 
+  let dni = req.body.dni; 
 
    // Email existente 
- let sql0 = `SELECT persona.mailPersona FROM persona WHERE mailPersona = '${emailUser}'`;
+ let sql0 = `SELECT persona.mailPersona, usuario.nom_usu
+  FROM persona 
+  INNER JOIN usuario 
+  ON persona.idUsuario = usuario.id_usu
+  WHERE mailPersona = '${emailUser}' AND documentoPersona = '${dni}' `;
  let query0 = conn.query(sql0, (err0, results0) => {
    if(err0) throw err0; 
    row = JSON.stringify(results0); 
    objEmail = JSON.parse(row); 
    //console.log('objEmail[0]: ', objEmail[0])
 
-   if (objEmail[0]) {
+   if (objEmail[0]) { 
     //Email existe
     let newPassword = gP();
     let newPasswordHash = bcrypt.hashSync(newPassword,10)
@@ -95,7 +100,7 @@ app.post('/send-email', (req, res) => {
             <div class="row justify-content-center p-5">
               <div class="col-12 text-center">
                 <p class="title text-light font-weight-bold">Hola, se han modificado tus datos de acceso. </p>
-                <p class="subtitle text-light pb-3">Tu nueva contraseña es: ${newPassword} </p> 
+                <p class="subtitle text-light pb-3">La nueva contraseña para el usuario "${objEmail[0].nom_usu}" es: ${newPassword} </p> 
               </div>
             </div>
           </div>
@@ -116,7 +121,7 @@ app.post('/send-email', (req, res) => {
           UPDATE usuario
           INNER JOIN persona ON usuario.id_usu = persona.idUsuario
           SET usuario.con_usu = '${newPasswordHash}'
-          WHERE persona.mailPersona = '${emailUser}'
+          WHERE persona.mailPersona = '${emailUser}' AND documentoPersona = '${dni}'
         `
         let query = conn.query(sql, (err, results) => {
           if(err) throw err;
