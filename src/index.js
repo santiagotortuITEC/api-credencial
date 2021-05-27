@@ -417,6 +417,7 @@ app.get('/login/:username/:password',(req, res) => {
                   INNER JOIN emp ON emp.id_emp = afiliado.id_emp
                   INNER JOIN persona ON persona.idPersona = afiliado.idPersona
                   WHERE persona.idPersona = '${objPersona[0].idPersona}'
+                  AND afiliado.estadoAfiliado = 'A'
                 `;
                 let query = conn.query(sql32, (err32, results32) => {
                   if(err32) throw err32; 
@@ -431,7 +432,9 @@ app.get('/login/:username/:password',(req, res) => {
                   INNER JOIN afiliado ON afiliado.idPersona = afiliadoflia.idPersonaA
                   INNER JOIN emp ON emp.id_emp = afiliado.id_emp
                   INNER JOIN persona AS personaTitular ON personaTitular.idPersona = afiliadoflia.idPersonaA 
-                  WHERE persona.idPersona = ${objPersona[0].idPersona}`;
+                  WHERE persona.idPersona = ${objPersona[0].idPersona}
+                  AND afiliado.estadoAfiliado = 'A'
+                  `;
                 let query4 = conn.query(sql4, (err4, results4) => {
                   if(err4) throw err4; 
                   rowArray4 = JSON.stringify(results4); 
