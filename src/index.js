@@ -208,9 +208,12 @@ app.get('/personaAfiliadoUsuario/:dni',(req, res) => {
          
           // Compruebo si un AFILIADO TITULAR se quiere registrar como FAMILIAR... 
           // Start checkAfiliadoTitular
+
+            // WHERE ESTADO = A
+            // AND afiliado.estadoAfiliado = 'A'
           let sql1 = `SELECT estadoAfiliado
             FROM afiliado 
-            WHERE idPersona = ${objPersona[0].idPersona}
+            WHERE idPersona = ${objPersona[0].idPersona} 
           ` 
           let query1 = conn.query(sql1, (err1, results1) => {
             if(err1) throw err1;
@@ -276,7 +279,48 @@ app.get('/personaAfiliadoUsuario/:dni',(req, res) => {
           
               }
 
-            } 
+            } else {
+               // Start afiliadoflia
+               let sql2 = `SELECT idPersonaA 
+               FROM afiliadoflia
+               WHERE idPersona = ${objPersona[0].idPersona}
+               ` 
+               let query2 = conn.query(sql2, (err2, results2) => {
+                 if(err2) throw err2;
+                 rowArray2 = JSON.stringify(results2); 
+                 objAfiliadoflia = JSON.parse(rowArray2);
+                 
+                 if (objAfiliadoflia[0]) {
+                   
+                   // Start usuarioactivo
+                   let sql3 = `SELECT id_usu
+                     FROM usuarioactivo 
+                     WHERE idPersona = ${objAfiliadoflia[0].idPersonaA}
+                   ` 
+                   let query3 = conn.query(sql3, (err3, results3) => {
+                     if(err3) throw err3;
+                     rowArray3 = JSON.stringify(results3); 
+                     objAfiliadoflia = JSON.parse(rowArray3);
+                     if (objAfiliadoflia[0]) {
+                       // respuesta final     
+                       return res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
+         
+                     }else{
+                       return res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
+                     }
+                   });
+                   // End usuarioactivo
+         
+         
+                 }else{
+                   return res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
+                 }
+
+
+
+               });
+               // End afiliadoflia
+            }
           });
           // End  
 
@@ -537,7 +581,11 @@ app.get('/afiliadoactivo/:username',(req, res) => {
             } else {
               // esta inactivo(titular), pero voy a chequear por le familiar 
 
-              let sql4 = `SELECT idPersonaA FROM afiliadoflia WHERE idPersona = '${obj2[0].idPersona}'`;
+              let sql4 = `SELECT idPersonaA 
+                  FROM afiliadoflia  
+                  INNER JOIN afiliado ON afiliado.idPersona = afiliadoflia.idPersonaA
+                  WHERE afiliadoflia.idPersona = '${obj2[0].idPersona}' AND afiliado.estadoAfiliado = 'A'
+              `;
               let query = conn.query(sql4, (err4, results4) => {
                 if(err4) throw err4;
                 rowArray4 = JSON.stringify(results4); 
